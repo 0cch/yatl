@@ -135,9 +135,6 @@ public:
 		return h_;
 	}
 
-	friend class ClosePolicy;
-	friend class TransferPolicy;
-
 private:
 	H h_;
 };

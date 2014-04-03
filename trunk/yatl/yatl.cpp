@@ -4,9 +4,21 @@
 #include "stdafx.h"
 #include "typelist.h"
 #include "smarthandle.h"
-
+#include "singleton.h"
 
 using namespace yatl;
+
+
+class PrintTest {
+public:
+	void Print() {std::cout<<"hehe"<<std::endl;}
+
+private:
+	PrintTest() {}
+	~PrintTest() {}
+
+friend struct SingleNewCreatorPolicy<PrintTest>;
+};
 
 int _tmain(int argc, _TCHAR* argv[])
 {
@@ -47,6 +59,9 @@ int _tmain(int argc, _TCHAR* argv[])
 	get<1>(TestValue1) = 100;
 	std::cout << get<1>(TestValue1) << std::endl;
 
+	SingletonHolder<PrintTest, SingleNewCreatorPolicy>::Instance().Print();
+
+	SingletonHolder<PrintTest, SingleNewCreatorPolicy>::DestoryInstance();
 
 	return 0;
 }
