@@ -151,6 +151,25 @@ template<class T, class U, class P, class Q> struct ReplaceAllTypeList<TypeList<
 	typedef TypeList<T, typename ReplaceAllTypeList<U, P, Q>::Result> Result;
 };
 
+//
+// ReverseTo
+//
+template<class T, class U> struct ReverseTo;
+template<class T> struct ReverseTo<NullType, T> {
+	typedef T Result;
+};
+
+template<class T, class U, class E> struct ReverseTo<TypeList<T, U>, E> {
+	typedef typename ReverseTo<U, TypeList<T, E>>::Result Result;
+};
+
+//
+// Reverse
+//
+template<class T> struct Reverse {
+	typedef typename ReverseTo<T, NullType>::Result Result;
+};
+
 template<unsigned int Index> struct Int2Type {
 	enum { Value = Index };
 };

@@ -9,18 +9,18 @@
 using namespace yatl;
 
 
-class PrintTest {
-public:
-	void Print() {std::cout<<"hehe"<<std::endl;}
 
-private:
-	PrintTest() {}
-	~PrintTest() {}
-
-friend struct SingleNewCreatorPolicy<PrintTest>;
-};
 
 int _tmain(int argc, _TCHAR* argv[])
+{
+	typedef TypeList<int, TypeList<char, TypeList<unsigned long, NullType>>> TestType;
+	PRINT_TYPELIST(TestType);
+	PRINT_TYPELIST(Reverse<TestType>::Result);
+
+	return 0;
+}
+
+void TypeListTest()
 {
 	typedef TypeList<int, TypeList<char, TypeList<unsigned long, NullType>>> TestType;
 	PRINT_TYPELIST(TestType);
@@ -54,15 +54,30 @@ int _tmain(int argc, _TCHAR* argv[])
 	typedef EraseAllTypeList<TestType8, int>::Result TestType9;
 	PRINT_TYPELIST(TestType8);
 	PRINT_TYPELIST(TestType9);
+}
 
+void TupleTest()
+{
+	typedef TypeList<int, TypeList<char, TypeList<unsigned long, NullType>>> TestType;
 	tuple<TestType> TestValue1;
 	get<1>(TestValue1) = 100;
 	std::cout << get<1>(TestValue1) << std::endl;
+}
+
+void SingletonTest()
+{
+	class PrintTest {
+	public:
+		void Print() { std::cout << "hehe" << std::endl; }
+
+	private:
+		PrintTest() {}
+		~PrintTest() {}
+
+		friend struct SingleNewCreatorPolicy<PrintTest>;
+	};
 
 	SingletonHolder<PrintTest, SingleNewCreatorPolicy>::Instance().Print();
 
 	SingletonHolder<PrintTest, SingleNewCreatorPolicy>::DestoryInstance();
-
-	return 0;
 }
-
