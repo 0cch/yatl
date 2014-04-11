@@ -8,15 +8,8 @@
 
 using namespace yatl;
 
-
-
-
 int _tmain(int argc, _TCHAR* argv[])
 {
-	typedef TypeList<int, TypeList<char, TypeList<unsigned long, NullType>>> TestType;
-	PRINT_TYPELIST(TestType);
-	PRINT_TYPELIST(Reverse<TestType>::Result);
-
 	return 0;
 }
 
@@ -24,6 +17,7 @@ void TypeListTest()
 {
 	typedef TypeList<int, TypeList<char, TypeList<unsigned long, NullType>>> TestType;
 	PRINT_TYPELIST(TestType);
+	PRINT_TYPELIST(Reverse<TestType>::Result);
 
 	TypeAtTypeList<TestType, 1>::Result d = 0x41;
 	std::cout << d << std::endl;
@@ -54,6 +48,7 @@ void TypeListTest()
 	typedef EraseAllTypeList<TestType8, int>::Result TestType9;
 	PRINT_TYPELIST(TestType8);
 	PRINT_TYPELIST(TestType9);
+
 }
 
 void TupleTest()
