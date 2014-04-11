@@ -10,7 +10,16 @@ using namespace yatl;
 
 int _tmain(int argc, _TCHAR* argv[])
 {
+	
 	return 0;
+}
+
+void TypeListMacroTest()
+{
+	typedef YATL_TYPELIST(int, long, unsigned int, char, HANDLE, HWND) TestType;
+	std::cout << IndexOfTypeList<TestType, char>::Value << std::endl;
+	TypeAtTypeList<TestType, 3>::Result d = 0x41;
+	std::cout << d << std::endl;
 }
 
 void TypeListTest()
