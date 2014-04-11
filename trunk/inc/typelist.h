@@ -14,6 +14,45 @@ template<class T, class U> struct TypeList {
 	typedef U Tail;
 };
 
+template
+	<
+		class T0 = NullType, class T1 = NullType, class T2 = NullType, 
+		class T3 = NullType, class T4 = NullType, class T5 = NullType, 
+		class T6 = NullType, class T7 = NullType, class T8 = NullType, 
+		class T9 = NullType, class T10 = NullType, class T11 = NullType, 
+		class T12 = NullType, class T13 = NullType, class T14 = NullType, 
+		class T15 = NullType, class T16 = NullType, class T17 = NullType, 
+		class T18 = NullType, class T19 = NullType, class T20 = NullType, 
+		class T21 = NullType, class T22 = NullType, class T23 = NullType, 
+		class T24 = NullType, class T25 = NullType, class T26 = NullType, 
+		class T27 = NullType, class T28 = NullType, class T29 = NullType, 
+		class T30 = NullType, class T31 = NullType, class T32 = NullType, 
+		class T33 = NullType, class T34 = NullType, class T35 = NullType, 
+		class T36 = NullType, class T37 = NullType, class T38 = NullType, 
+		class T39 = NullType, class T40 = NullType, class T41 = NullType, 
+		class T42 = NullType, class T43 = NullType, class T44 = NullType, 
+		class T45 = NullType, class T46 = NullType, class T47 = NullType, 
+		class T48 = NullType, class T49 = NullType, class T50 = NullType, 
+		class T51 = NullType, class T52 = NullType, class T53 = NullType, 
+		class T54 = NullType, class T55 = NullType, class T56 = NullType, 
+		class T57 = NullType, class T58 = NullType, class T59 = NullType
+	>
+struct MakeTypeList {
+	typedef TypeList<T0, typename MakeTypeList<
+		T1, T2, T3, T4, T5, T6, T7, T8, T9, 
+		T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, 
+		T20, T21, T22, T23, T24, T25, T26, T27, T28, T29, 
+		T30, T31, T32, T33, T34, T35, T36, T37, T38, T39, 
+		T40, T41, T42, T43, T44, T45, T46, T47, T48, T49, 
+		T50, T51, T52, T53, T54, T55, T56, T57, T58, T59>::Result> Result;
+};
+
+template<>
+struct MakeTypeList<> {
+	typedef NullType Result;
+};
+
+
 //
 // TypeListLength
 //
@@ -232,6 +271,8 @@ template<class T> struct PrintType
 }
 
 }
+
+#define YATL_TYPELIST(...) yatl::MakeTypeList<__VA_ARGS__>::Result
 
 #endif
 
