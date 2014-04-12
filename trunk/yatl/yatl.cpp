@@ -5,6 +5,7 @@
 #include "typelist.h"
 #include "smarthandle.h"
 #include "singleton.h"
+#include "factory.h"
 
 using namespace yatl;
 
@@ -12,6 +13,18 @@ int _tmain(int argc, _TCHAR* argv[])
 {
 	
 	return 0;
+}
+
+void FactoryTest()
+{
+	typedef YATL_TYPELIST(int, unsigned int, char) TestType;
+	Tuple<TestType> obj;
+	(TupleConstructorHelper<TestType>(obj))(1)(-1)(0x41);
+	FactoryHolder<TestType, CloneCreaterPolicy> TestFactory(obj);
+
+	char *p = TestFactory.Create<char>();
+	delete p;
+
 }
 
 void TypeListMacroTest()
@@ -26,7 +39,7 @@ void TypeListTest()
 {
 	typedef TypeList<int, TypeList<char, TypeList<unsigned long, NullType>>> TestType;
 	PRINT_TYPELIST(TestType);
-	PRINT_TYPELIST(Reverse<TestType>::Result);
+	PRINT_TYPELIST(ReverseTypeList<TestType>::Result);
 
 	TypeAtTypeList<TestType, 1>::Result d = 0x41;
 	std::cout << d << std::endl;
@@ -38,6 +51,9 @@ void TypeListTest()
 
 	typedef AppendTypeList<TestType2, TestType>::Result TestType3;
 	PRINT_TYPELIST(TestType3);
+
+	std::cout << IsAllUniqueTypeList<TestType>::Value << std::endl;
+	std::cout << IsAllUniqueTypeList<TestType3>::Value << std::endl;
 
 	typedef EraseTypeList<TestType3, unsigned long>::Result TestType4;
 	PRINT_TYPELIST(TestType4);

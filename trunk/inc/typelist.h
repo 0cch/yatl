@@ -5,6 +5,14 @@
 
 namespace yatl {
 
+template<unsigned int Index> struct Int2Type {
+	enum { Value = Index };
+};
+
+template<class T> struct Type2Type {
+	typedef T Original;
+};
+
 struct NullType;
 
 struct EmptyType {};
@@ -191,27 +199,68 @@ template<class T, class U, class P, class Q> struct ReplaceAllTypeList<TypeList<
 };
 
 //
-// ReverseTo
+// ReverseToTypeList
 //
-template<class T, class U> struct ReverseTo;
-template<class T> struct ReverseTo<NullType, T> {
+template<class T, class U> struct ReverseToTypeList;
+template<class T> struct ReverseToTypeList<NullType, T> {
 	typedef T Result;
 };
 
-template<class T, class U, class E> struct ReverseTo<TypeList<T, U>, E> {
-	typedef typename ReverseTo<U, TypeList<T, E>>::Result Result;
+template<class T, class U, class E> struct ReverseToTypeList<TypeList<T, U>, E> {
+	typedef typename ReverseToTypeList<U, TypeList<T, E>>::Result Result;
 };
 
 //
-// Reverse
+// ReverseTypeList
 //
-template<class T> struct Reverse {
-	typedef typename ReverseTo<T, NullType>::Result Result;
+template<class T> struct ReverseTypeList {
+	typedef typename ReverseToTypeList<T, NullType>::Result Result;
 };
 
-template<unsigned int Index> struct Int2Type {
-	enum { Value = Index };
+//
+// FindTypeList
+//
+template<class T, class U> struct FindTypeList;
+template<class T> struct FindTypeList<NullType, T> {
+	typedef NullType Result;
 };
+
+template<class T, class U> struct FindTypeList<TypeList<T, U>, T> {
+	typedef TypeList<T, U> Result;
+};
+
+template<class T, class U, class E> struct FindTypeList<TypeList<T, U>, E> {
+	typedef typename FindTypeList<U, E>::Result Result;
+};
+
+//
+// HasTypeList
+//
+template<class T, class U> struct HasTypeList;
+template<class T> struct HasTypeList<NullType, T> {
+	enum { Value = 0 };
+};
+
+template<class T, class U> struct HasTypeList<TypeList<T, U>, T> {
+	enum { Value = 1 };
+};
+
+template<class T, class U, class E> struct HasTypeList<TypeList<T, U>, E> {
+	enum { Value = HasTypeList<U, E>::Value };
+};
+
+//
+// IsAllUniqueTypeList
+//
+template<class T> struct IsAllUniqueTypeList;
+template<> struct IsAllUniqueTypeList<NullType> {
+	enum { Value = 1 };
+};
+
+template<class T, class U> struct IsAllUniqueTypeList<TypeList<T, U>> {
+	enum { Value = (HasTypeList<U, T>::Value == 0 ? 1 : 0) && (IsAllUniqueTypeList<U>::Value) };
+};
+
 
 template<class T> struct Tuple;
 template<class T> struct Tuple {
@@ -314,7 +363,7 @@ template<class T> struct PrintType
 	EnumTypeList<x, PrintType>(); std::cout << std::endl << std::endl;	\
 }
 
-}
+};
 
 #define YATL_TYPELIST(...) yatl::MakeTypeList<__VA_ARGS__>::Result
 #define YATL_TUPLE(...) yatl::Tuple<YATL_TYPELIST(__VA_ARGS__)>
