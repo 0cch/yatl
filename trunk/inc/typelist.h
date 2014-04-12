@@ -213,37 +213,81 @@ template<unsigned int Index> struct Int2Type {
 	enum { Value = Index };
 };
 
-template<class T> struct tuple;
-template<class T> struct tuple {
+template<class T> struct Tuple;
+template<class T> struct Tuple {
 	T value_;
 };
 
-template<> struct tuple<NullType> {
+template<> struct Tuple<NullType> {
 };
 
-template<class T, class U> struct tuple<TypeList<T, U>> : public tuple<U>{
+template<class T, class U> struct Tuple<TypeList<T, U>> : public Tuple<U>{
+	Tuple() {}
+	Tuple(const Tuple<TypeList<T, U>> &src) : Tuple<U>(src), value_(src.value_) {}
+	Tuple& operator = (const Tuple<TypeList<T, U>> &src) {
+		value_ = src.value_;
+		const Tuple<U> &obj = src;
+		Tuple<U> &tail = *this;
+		tail.operator=(obj);
+
+		return *this;
+	}
+	Tuple(Tuple<TypeList<T, U>> &&src) : Tuple<U>((Tuple<U>&&)src) {
+		value_ = src.value_;
+		src.value_ = T();
+	}
+	Tuple& operator = (Tuple<TypeList<T, U>> &&src) {
+		value_ = src.value_;
+		src.value_ = T();
+		Tuple<U> &obj = src;
+		Tuple<U> &tail = *this;
+		tail.operator=((Tuple<U>&&)obj);
+
+		return *this;
+	}
 	T value_;
 };
 
 template<class T>
-typename T::Head& get_help(tuple<T> &src, Int2Type<0>)
+typename T::Head& get_help(Tuple<T> &src, Int2Type<0>)
 {
-	tuple<T> &obj = src;
+	Tuple<T> &obj = src;
 	return obj.value_;
 }
 
 template<unsigned int i, class T>
-typename TypeAtTypeList<T, i>::Result& get_help(tuple<T> &src, Int2Type<i>)
+typename TypeAtTypeList<T, i>::Result& get_help(Tuple<T> &src, Int2Type<i>)
 {
-	tuple<T::Tail> &obj = src;
+	Tuple<T::Tail> &obj = src;
 	return get_help(obj, Int2Type<i - 1>());
 }
 
 template<unsigned int i, class T>
-typename TypeAtTypeList<T, i>::Result& get(tuple<T> &src)
+typename TypeAtTypeList<T, i>::Result& get(Tuple<T> &src)
 {
 	return get_help(src, Int2Type<i>());
 }
+
+template<class T> struct TupleConstructorHelper;
+template<class T> struct TupleConstructorHelper<TypeList<T, NullType>> {
+	TupleConstructorHelper(Tuple<TypeList<T, NullType>> &src) : container_(src) {}
+	void operator () (const T &t) {
+		new (&container_.value_) T(t);
+	}
+
+	Tuple<TypeList<T, NullType>>& container_;
+};
+
+template<class T, class U> struct TupleConstructorHelper<TypeList<T, U>> {
+	TupleConstructorHelper(Tuple<TypeList<T, U>> &src) : container_(src) {}
+	TupleConstructorHelper<U> operator () (const T &t) {
+		new (&container_.value_) T(t);
+		Tuple<U> &obj = container_;
+		return TupleConstructorHelper<U>(obj);
+	}
+
+	Tuple<TypeList<T, U>>& container_;
+};
 
 template<class T, template <class> class F> struct EnumTypeList;
 
@@ -273,6 +317,12 @@ template<class T> struct PrintType
 }
 
 #define YATL_TYPELIST(...) yatl::MakeTypeList<__VA_ARGS__>::Result
+#define YATL_TUPLE(...) yatl::Tuple<YATL_TYPELIST(__VA_ARGS__)>
+#define YATL_DEF_TUPLE(obj, ...) YATL_TUPLE(__VA_ARGS__) obj
+#define YATL_TUPLE_CONSTRUCTOR(type, obj) (yatl::TupleConstructorHelper<type>(obj))
+#define YATL_MAKE_TUPLE(obj, ...) \
+	YATL_DEF_TUPLE(obj, __VA_ARGS__);\
+	YATL_TUPLE_CONSTRUCTOR(YATL_TYPELIST(__VA_ARGS__), obj)
 
 #endif
 

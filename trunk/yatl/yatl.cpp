@@ -63,9 +63,20 @@ void TypeListTest()
 void TupleTest()
 {
 	typedef TypeList<int, TypeList<char, TypeList<unsigned long, NullType>>> TestType;
-	tuple<TestType> TestValue1;
+	Tuple<TestType> TestValue1;
 	get<1>(TestValue1) = 100;
 	std::cout << get<1>(TestValue1) << std::endl;
+
+	YATL_MAKE_TUPLE(TupleTest, int, char, unsigned long)(11)(0x41)(-1);
+	YATL_DEF_TUPLE(TupleTest1, int, char, unsigned long)(TupleTest);
+
+	YATL_DEF_TUPLE(TupleTest2, int, char, unsigned long);
+	TupleTest2 = TupleTest1;
+
+	YATL_DEF_TUPLE(TupleTest3, int, char, unsigned long)(std::move(TupleTest2));
+	YATL_DEF_TUPLE(TupleTest4, int, char, unsigned long);
+
+	TupleTest4 = std::move(TupleTest3);
 }
 
 void SingletonTest()
