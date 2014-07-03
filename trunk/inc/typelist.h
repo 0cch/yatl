@@ -363,6 +363,40 @@ template<class T> struct PrintType
 	EnumTypeList<x, PrintType>(); std::cout << std::endl << std::endl;	\
 }
 
+
+typedef char r1;
+typedef struct {
+	char foo[2];
+} r2;
+
+class ppp {
+	typedef int qq;
+};
+
+template<class T1, class T2>
+struct Conversion {
+
+	static T1 MakeT1();
+
+	static r1 CheckType(T2);
+	static r2 CheckType(...);
+
+	enum {
+		exists = sizeof(CheckType(MakeT1())) == sizeof(r1),
+		exists2way = Conversion<T2, T1>::exists && exists,
+		sametype = false
+	};
+};
+
+template<class T>
+struct Conversion<T, T> {
+	enum {
+		exists = true,
+		exists2way = true,
+		sametype = true
+	};
+};
+
 };
 
 #define YATL_TYPELIST(...) yatl::MakeTypeList<__VA_ARGS__>::Result
@@ -372,6 +406,15 @@ template<class T> struct PrintType
 #define YATL_MAKE_TUPLE(obj, ...) \
 	YATL_DEF_TUPLE(obj, __VA_ARGS__);\
 	YATL_TUPLE_CONSTRUCTOR(YATL_TYPELIST(__VA_ARGS__), obj)
+
+
+#define DefineHasType(t, m) namespace yatl {	\
+	template<typename T> r1 has_type_##t##_##m(typename const T::m *);	\
+	template<typename T> r2 has_type_##t##_##m(...);	\
+	bool t##HasType##m() {return sizeof(has_type_##t##_##m<t>(0)) == sizeof(r1);} \
+}
+
+#define DeclareHasType(t, m) bool yatl::t##HasType##m()
 
 #endif
 
