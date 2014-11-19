@@ -13,6 +13,16 @@ template<class T> struct Type2Type {
 	typedef T Original;
 };
 
+template<class T, class U, bool b> struct SelectType;
+
+template<class T, class U> struct SelectType<T, U, true> {
+	typedef T Result;
+};
+
+template<class T, class U> struct SelectType<T, U, false> {
+	typedef U Result;
+};
+
 struct NullType;
 
 struct EmptyType {};
@@ -83,7 +93,7 @@ template<class T, class U> struct TypeAtTypeList<TypeList<T, U>, 0> {
 };
 
 template<unsigned int Index> struct TypeAtTypeList<NullType, Index> {
-	typedef EmptyType Result;
+	typedef NullType Result;
 };
 
 template<class T, class U, unsigned int Index> struct TypeAtTypeList<TypeList<T, U>, Index> {
@@ -369,10 +379,6 @@ typedef struct {
 	char foo[2];
 } r2;
 
-class ppp {
-	typedef int qq;
-};
-
 template<class T1, class T2>
 struct Conversion {
 
@@ -395,6 +401,73 @@ struct Conversion<T, T> {
 		exists2way = true,
 		sametype = true
 	};
+};
+
+
+
+template<class T> struct SortTypeList_GetFirst;
+
+template<class T> struct SortTypeList_GetFirst<TypeList<T, NullType>> {
+	typedef T Result;
+};
+
+template<class T, class U> struct SortTypeList_GetFirst<TypeList<T, U>> {
+	typedef typename SortTypeList_GetFirst<U>::Result TailResult;
+	enum {
+		CmpResult = T::yatl_index < TailResult::yatl_index
+	};
+	typedef typename SelectType<T, TailResult, CmpResult>::Result Result;
+};
+
+template<class T> struct SortTypeList;
+
+template<> struct SortTypeList<NullType> {
+	typedef NullType Result;
+};
+
+template<class T, class U> struct SortTypeList<TypeList<T, U>> {
+	typedef typename SortTypeList_GetFirst<TypeList<T, U>>::Result FirstResult;
+	typedef typename ReplaceTypeList<U, FirstResult, T>::Result TailResult;
+	typedef typename TypeList<FirstResult, typename SortTypeList<TailResult>::Result> Result;
+};
+
+template<class T,int yatl_index> struct TypeListGetTypeByYatlIndex;
+
+template<int yatl_index> struct TypeListGetTypeByYatlIndex<NullType, yatl_index> {
+	typedef NullType Result;
+};
+
+template<class T, class U, int yatl_index> struct TypeListGetTypeByYatlIndex<TypeList<T, U>, yatl_index> {
+	enum {
+		CmpResult = yatl_index == T::yatl_index
+	};
+	typedef typename SelectType<T, typename TypeListGetTypeByYatlIndex<U, yatl_index>::Result, CmpResult>::Result Result;
+};
+
+
+template<class T, int begin_pos, int end_pos, bool valid, int yatl_index> struct BinaryFindTypeList;
+
+template<class T, int begin_pos, int end_pos, int yatl_index> struct BinaryFindTypeList<T, begin_pos, end_pos, false, yatl_index> {
+	typedef NullType Result;
+};
+
+template<class T, class U, int begin_pos, int end_pos, int yatl_index> struct BinaryFindTypeList<TypeList<T, U>, begin_pos, end_pos, true, yatl_index> {
+	enum {
+		MiddlePos = (begin_pos + end_pos) >> 1
+	};
+
+	typedef typename TypeAtTypeList<TypeList<T, U>, MiddlePos>::Result MiddleType;
+
+	enum {
+		CmpResult1 = MiddleType::yatl_index == yatl_index,
+		CmpResult2 = MiddleType::yatl_index < yatl_index,
+	};
+
+	typedef typename SelectType<MiddleType, 
+		typename SelectType<
+		typename BinaryFindTypeList<TypeList<T, U>, MiddlePos + 1, end_pos, MiddlePos + 1 <= end_pos, yatl_index>::Result, 
+		typename BinaryFindTypeList<TypeList<T, U>, begin_pos, MiddlePos - 1, begin_pos <= MiddlePos - 1, yatl_index>::Result, CmpResult2>::Result, 
+		CmpResult1>::Result Result;
 };
 
 };

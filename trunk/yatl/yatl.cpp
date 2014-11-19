@@ -9,9 +9,96 @@
 
 using namespace yatl;
 
+class A1 {
+public:
+	A1() {printf("A1\n");}
+	enum {
+		yatl_index = 1
+	};
+};
+
+class A2 {
+public:
+	A2() {printf("A2\n");}
+	enum {
+		yatl_index = 2
+	};
+};
+
+class A3 {
+public:
+	A3() {printf("A3\n");}
+	enum {
+		yatl_index = 3
+	};
+};
+
+class A4 {
+public:
+	A4() {printf("A4\n");}
+	enum {
+		yatl_index = 4
+	};
+};
+
+class A5 {
+public:
+	A5() {printf("A5\n");}
+	enum {
+		yatl_index = 5
+	};
+};
+
+class A6 {
+public:
+	A6() {printf("A6\n");}
+	enum {
+		yatl_index = 6
+	};
+};
+
+class A7 {
+public:
+	A7() {printf("A7\n");}
+	enum {
+		yatl_index = 7
+	};
+};
+
+template<class T, int begin_pos, int end_pos, bool valid> struct DoDispatch;
+
+template<class T, int begin_pos, int end_pos> struct DoDispatch<T, begin_pos, end_pos, false> {
+	DoDispatch(T &t, int index) {}
+};
+
+
+template<class T, int begin_pos, int end_pos> struct DoDispatch<T, begin_pos, end_pos, true>
+{
+	DoDispatch(T &t, int index) {
+		
+		const int middle_pos = (begin_pos + end_pos) >> 1;
+		if (TypeAtTypeList<T, middle_pos>::Result::yatl_index == index) {
+			TypeAtTypeList<T, middle_pos>::Result();
+		}
+		else if (TypeAtTypeList<T, middle_pos>::Result::yatl_index < index) {
+			const bool cmp = middle_pos + 1 <= end_pos;
+			DoDispatch<T, middle_pos + 1, end_pos, cmp>(t, index);
+		}
+		else {
+			const bool cmp = begin_pos <= middle_pos - 1;
+			DoDispatch<T, begin_pos, middle_pos - 1, cmp>(t, index);
+		}
+	}
+};
+
 int _tmain(int argc, _TCHAR* argv[])
 {
-	
+	typedef YATL_TYPELIST(A5, A2, A3, A4, A1, A7, A6) TestType;
+	typedef SortTypeList<TestType>::Result ttt;
+	// PRINT_TYPELIST(ttt);
+
+	DoDispatch<ttt, 0, TypeListLength<ttt>::Value - 1, true>(ttt(), 5);
+
 	return 0;
 }
 
