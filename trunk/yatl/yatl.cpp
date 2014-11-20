@@ -46,13 +46,18 @@ public:
 
 
 
+
 int _tmain(int argc, _TCHAR* argv[])
 {
 	typedef YATL_TYPELIST(A5, A2, A3, A4, A1, A7, A6) TestType;
-	
+
+	int b = IsTypeList(A5);
+	b = IsTypeList(TestType);
+	b = IsAscendingTypeList(TestType);
 	typedef SortTypeList<TestType>::Result ttt;
 	// PRINT_TYPELIST(ttt);
-	IsAscendingTypeList(ttt);
+	
+	b = IsAscendingTypeList(ttt);
 
 	DispatchEngine<ttt, 0, TypeListLength<ttt>::Value - 1, true>::Dispatch(6, NULL);
 

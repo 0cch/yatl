@@ -32,6 +32,18 @@ template<class T, class U> struct TypeList {
 	typedef U Tail;
 };
 
+template<class T> struct IsTypeList {
+	enum {
+		Value = 0
+	};
+};
+
+template<class T, class U> struct IsTypeList<TypeList<T, U>> {
+	enum {
+		Value = 1
+	};
+};
+
 template
 	<
 		class T0 = NullType, class T1 = NullType, class T2 = NullType, 
@@ -498,14 +510,18 @@ template<class T, int begin_pos, int end_pos, class R, class P> struct DispatchE
 	}
 };
 
-template<class T> struct TypleListIsAscending {};
+template<class T> struct TypeListIsAscending {};
 
-template<class T> struct TypleListIsAscending<TypeList<T, NullType>> {};
+template<class T> struct TypeListIsAscending<TypeList<T, NullType>> {
+	enum {
+		Value = 1
+	};
+};
 
-template<class T, class U> struct TypleListIsAscending<TypeList<T, U>> {
-	TypleListIsAscending() {
-		static_assert(T::yatl_index < U::Head::yatl_index, "yatl assert : is not a ascending type list");
-	}
+template<class T, class U> struct TypeListIsAscending<TypeList<T, U>> {
+	enum {
+		Value = (T::yatl_index < U::Head::yatl_index) & TypeListIsAscending<U>::Value
+	};
 };
 
 };
@@ -525,7 +541,9 @@ template<class T, class U> struct TypleListIsAscending<TypeList<T, U>> {
 	bool t##HasType##m() {return sizeof(has_type_##t##_##m<t>(0)) == sizeof(r1);} \
 }
 
-#define IsAscendingTypeList(type)	TypleListIsAscending<type>()
+#define IsTypeList(type)	yatl::IsTypeList<type>::Value
+
+#define IsAscendingTypeList(type)	yatl::TypeListIsAscending<type>::Value
 
 #define DeclareHasType(t, m) bool yatl::t##HasType##m()
 
