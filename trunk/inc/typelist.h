@@ -470,6 +470,44 @@ template<class T, class U, int begin_pos, int end_pos, int yatl_index> struct Bi
 		CmpResult1>::Result Result;
 };
 
+
+template<class T, int begin_pos, int end_pos, bool valid, class R = void, class P = void> struct DispatchEngine;
+
+template<class T, int begin_pos, int end_pos, class R, class P> struct DispatchEngine<T, begin_pos, end_pos, false, R, P> {
+	static R Dispatch(int index, P* param) { return R(); }
+};
+
+template<class T, int begin_pos, int end_pos, class R, class P> struct DispatchEngine<T, begin_pos, end_pos, true, R, P>
+{
+	static R Dispatch(int index, P* param) {
+
+		const int middle_pos = (begin_pos + end_pos) >> 1;
+		if (TypeAtTypeList<T, middle_pos>::Result::yatl_index == index) {
+			return TypeAtTypeList<T, middle_pos>::Result::Run(param);
+		}
+		else if (TypeAtTypeList<T, middle_pos>::Result::yatl_index < index) {
+			const bool cmp = middle_pos + 1 <= end_pos;
+			return DispatchEngine<T, middle_pos + 1, end_pos, cmp, R, P>::Dispatch(index, param);
+		}
+		else {
+			const bool cmp = begin_pos <= middle_pos - 1;
+			return DispatchEngine<T, begin_pos, middle_pos - 1, cmp, R, P>::Dispatch(index, param);
+		}
+
+		return R();
+	}
+};
+
+template<class T> struct TypleListIsAscending {};
+
+template<class T> struct TypleListIsAscending<TypeList<T, NullType>> {};
+
+template<class T, class U> struct TypleListIsAscending<TypeList<T, U>> {
+	TypleListIsAscending() {
+		static_assert(T::yatl_index < U::Head::yatl_index, "yatl assert : is not a ascending type list");
+	}
+};
+
 };
 
 #define YATL_TYPELIST(...) yatl::MakeTypeList<__VA_ARGS__>::Result
@@ -487,7 +525,22 @@ template<class T, class U, int begin_pos, int end_pos, int yatl_index> struct Bi
 	bool t##HasType##m() {return sizeof(has_type_##t##_##m<t>(0)) == sizeof(r1);} \
 }
 
+#define IsAscendingTypeList(type)	TypleListIsAscending<type>()
+
 #define DeclareHasType(t, m) bool yatl::t##HasType##m()
+
+#define DISPATCH_ITEM_DECL(index, return_type, param_type)	\
+	public:	\
+	enum {	yatl_index = index	};	\
+	static return_type Run(param_type * param);
+
+#define DISPATCH_ITEM_DEF(index, return_type, param_type)	\
+	public:	\
+	enum {	yatl_index = index	};	\
+	static return_type Run(param_type * param)
+
+#define DISPATCH_ITEM_DEF_IMPL(base, return_type, param_type)	\
+	static return_type base::Run(param_type * param)
 
 #endif
 
